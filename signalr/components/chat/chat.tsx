@@ -16,7 +16,6 @@ export default function ChatComponent({ hubConnection }: ChatComponentProps) {
   const [messages, setMessages] = useState<string[]>([]);
   const [usersList, setUsersList] = useState<UserEntry[]>([]);
   const [channelsList, setChannelsList] = useState<Channel[]>([]);
-  const [isConnectedToHub, setIsConnectedToHub] = useState(false);
   const [newChannelName, setNewChannelName] = useState('');
   const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
   const [selectedUser, setSelectedUser] = useState<UserEntry | null>(null);
@@ -38,9 +37,6 @@ export default function ChatComponent({ hubConnection }: ChatComponentProps) {
     // TODO: Écouter le message pour mettre à jour la liste de channels
 
     // TODO: Écouter le message pour quitter un channel (lorsque le channel est effacé)
-
-    // Marquer comme connecté
-    setIsConnectedToHub(true);
 
     return () => {
       hubConnection.off('UsersList');
@@ -89,10 +85,6 @@ export default function ChatComponent({ hubConnection }: ChatComponentProps) {
     hubConnection.invoke('JoinChannel', selectedChannelId, 0);
     setSelectedChannel(null);
     setMessages([]);
-  }
-
-  if (!isConnectedToHub) {
-    return <div>Non connecté au Hub SignalR</div>;
   }
 
   return (
