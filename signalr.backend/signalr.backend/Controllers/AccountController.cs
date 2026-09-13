@@ -35,8 +35,8 @@ namespace signalr.backend.Controllers
             }
             IdentityUser user = new IdentityUser()
             {
-                UserName = register.Email,
-                Email = register.Email
+                UserName = register.Username,
+                Email = register.Username
             };
             IdentityResult identityResult = await this.UserManager.CreateAsync(user, register.Password);
             if (!identityResult.Succeeded)
@@ -44,13 +44,13 @@ namespace signalr.backend.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     new { Message = "La création de l'utilisateur a échoué." });
             }
-            return await Login(new LoginDTO() { Password = register.Password, Email = register.Email });
+            return await Login(new LoginDTO() { Password = register.Password, Username = register.Username });
         }
 
         [HttpPost]
         public async Task<ActionResult<LoginResultDTO>> Login(LoginDTO login)
         {
-            var result = await SignInManager.PasswordSignInAsync(login.Email, login.Password, true, lockoutOnFailure: false);
+            var result = await SignInManager.PasswordSignInAsync(login.Username, login.Password, true, lockoutOnFailure: false);
             if (result.Succeeded)
             {
                 Claim? nameIdentifierClaim = User.Claims?.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier);
@@ -75,7 +75,7 @@ namespace signalr.backend.Controllers
 
                 string tokenString = new JwtSecurityTokenHandler().WriteToken(token);
 
-                return Ok(new LoginResultDTO() { Email = login.Email, Token = tokenString });
+                return Ok(new LoginResultDTO() { Username = login.Username, Token = tokenString });
             }
 
             return NotFound(new { Error = "L'utilisateur est introuvable ou le mot de passe de concorde pas" });
