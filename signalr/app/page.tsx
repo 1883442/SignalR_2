@@ -5,6 +5,7 @@ import { HubConnection, HubConnectionBuilder, LogLevel } from "@microsoft/signal
 
 import { Button, BorderedContainer, LoginView } from "ui-exercices-5w5"
 import ChatComponent from "@/components/chat/chat"
+import { sendMessage } from "@microsoft/signalr/dist/esm/Utils"
 
 const serverUrl = "http://localhost:5106/"
 const loginUrl = serverUrl + "api/Account"
@@ -14,6 +15,7 @@ export default function Home() {
 
   const [hubConnection, setHubConnection] = useState<HubConnection | null>(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [listUsers, setListUsers] = useState<string[]>()
   
 
   function connectToHub() {
@@ -22,6 +24,13 @@ export default function Home() {
                               .withAutomaticReconnect()
                               .configureLogging(LogLevel.Information)
                               .build();
+
+    newHubConnection.on('ListUsers', (data) => {
+      setListUsers(data);
+    })
+
+   
+    
 
     newHubConnection
       .start()
