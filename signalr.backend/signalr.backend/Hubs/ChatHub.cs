@@ -38,9 +38,14 @@ namespace signalr.backend.Hubs
 
         public async override Task OnConnectedAsync()
         {
+            await base.OnConnectedAsync();
             UserHandler.UserConnections.Add(CurentUser.Email!, Context.UserIdentifier);
             
             // TODO: Envoyer des message aux clients pour les mettre à jour
+             var connectedUsers = UserHandler.UserConnections.Values.ToList();    
+             await Clients.All.SendAsync("ListUsers", connectedUsers);
+             await Clients.All.SendAsync("ListChannels", _context.Channel.ToList());
+             await Clients.All.SendAsync("ListMessages", _context.Channel.ToList());
         }
 
         public async override Task OnDisconnectedAsync(Exception? exception)
@@ -50,6 +55,8 @@ namespace signalr.backend.Hubs
             UserHandler.UserConnections.Remove(entrie.Key);
             
             // TODO: Envoyer un message aux clients pour les mettre à jour
+            var connectedUsers = UserHandler.UserConnections.Values.ToList();    
+            await Clients.All.SendAsync("ListUsers", connectedUsers);
         }
 
         public async Task CreateChannel(string title)
@@ -58,6 +65,7 @@ namespace signalr.backend.Hubs
             await _context.SaveChangesAsync();
 
             // TODO: Envoyer un message aux clients pour les mettre à jour
+            await Clients.All.SendAsync("ListChannels", _context.Channel.ToList());
         }
 
         public async Task DeleteChannel(int channelId)
@@ -71,6 +79,7 @@ namespace signalr.backend.Hubs
             }
             string groupName = CreateChannelGroupName(channelId);
             // Envoyer les messages nécessaires aux clients
+            await Clients.All.SendAsync("ListChannels", _context.Channel.ToList());
         }
 
         public async Task JoinChannel(int oldChannelId, int newChannelId)
@@ -78,8 +87,12 @@ namespace signalr.backend.Hubs
             string userTag = "[" + CurentUser.Email! + "]";
 
             // TODO: Faire quitter le vieux canal à l'utilisateur
+            var groupName = await _context.Channel.Where(c => c.Id == oldChannelId).FirstAsync();
+            await Groups.RemoveFromGroupAsync(userTag, groupName.Title);
 
             // TODO: Faire joindre le nouveau canal à l'utilisateur
+            var newGroupName = await _context.Channel.Where(c => c.Id == newChannelId).FirstAsync();
+            await Groups.RemoveFromGroupAsync(userTag, newGroupName.Title);
         }
 
         public async Task SendMessage(string message, int channelId, string userId)
@@ -87,10 +100,18 @@ namespace signalr.backend.Hubs
             if (userId != null)
             {
                 // TODO: Envoyer le message à cet utilisateur
+                var messegedUser = UserHandler.UserConnections.Where(v => v.Value == userId);
+                await Clients.User(userId).SendAsync("NewMessage", channelId, message);
+
             }
             else if (channelId != 0)
             {
                 // TODO: Envoyer le message aux utilisateurs connectés à ce canal
+
+                var msgChannel = await _context.Channel.Where(c => c.Id == channelId).FirstAsync();
+                
+                await Clients.Group(msgChannel.Title).SendAsync("NewMessage", channelId , message);
+
             }
             else
             {

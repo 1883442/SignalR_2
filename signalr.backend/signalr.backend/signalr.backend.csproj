@@ -5,6 +5,8 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>aspnet-signalr.backend-aefa9c3e-d01f-4f76-bdd5-105e87e01f88</UserSecretsId>
+    <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
+    <AllowMissingPrunePackageData>true</AllowMissingPrunePackageData>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(RunConfiguration)' == 'https' " />
