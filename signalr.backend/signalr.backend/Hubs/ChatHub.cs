@@ -46,6 +46,7 @@ namespace signalr.backend.Hubs
              await Clients.All.SendAsync("ListUsers", connectedUsers);
              await Clients.All.SendAsync("ListChannels", _context.Channel.ToList());
              await Clients.All.SendAsync("ListMessages", _context.Channel.ToList());
+             await Clients.All.SendAsync("JoinChannel");
         }
 
         public async override Task OnDisconnectedAsync(Exception? exception)
@@ -87,12 +88,16 @@ namespace signalr.backend.Hubs
             string userTag = "[" + CurentUser.Email! + "]";
 
             // TODO: Faire quitter le vieux canal à l'utilisateur
-            var groupName = await _context.Channel.Where(c => c.Id == oldChannelId).FirstAsync();
-            await Groups.RemoveFromGroupAsync(userTag, groupName.Title);
+            if (oldChannelId != 0)
+            {
+                var groupName = await _context.Channel.Where(c => c.Id == oldChannelId).FirstAsync();
+                await Groups.RemoveFromGroupAsync(userTag, groupName.Title);
+            }
+
 
             // TODO: Faire joindre le nouveau canal à l'utilisateur
             var newGroupName = await _context.Channel.Where(c => c.Id == newChannelId).FirstAsync();
-            await Groups.RemoveFromGroupAsync(userTag, newGroupName.Title);
+            await Groups.AddToGroupAsync(userTag, newGroupName.Title);
         }
 
         public async Task SendMessage(string message, int channelId, string userId)

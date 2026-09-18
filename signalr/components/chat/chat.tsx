@@ -25,7 +25,7 @@ export default function ChatComponent({ hubConnection }: ChatComponentProps) {
     if (!hubConnection) return;
 
     // Écouter la liste des utilisateurs
-    hubConnection.on('UsersList', (data: UserEntry[]) => {
+    hubConnection.on('ListUsers', (data: UserEntry[]) => {
       setUsersList(data);
     });
 
@@ -41,7 +41,7 @@ export default function ChatComponent({ hubConnection }: ChatComponentProps) {
 
     // TODO: Écouter le message pour quitter un channel (lorsque le channel est effacé)
     hubConnection.on('OnDisconnectedAsync', () => {
-      hubConnection.off('UsersList');
+      hubConnection.off('ListUsers');
       hubConnection.off('NewMessage');
     });
   }, [hubConnection]);
@@ -52,6 +52,7 @@ export default function ChatComponent({ hubConnection }: ChatComponentProps) {
     hubConnection.invoke('JoinChannel', selectedChannelId, channel.id);
     setSelectedChannel(channel);
     setMessages([]); // Vider les messages quand on change de canal
+    //hubConnection.invoke("ListMessages", selectedChannelId);
   }
 
   function sendMessage(e: React.FormEvent) {
